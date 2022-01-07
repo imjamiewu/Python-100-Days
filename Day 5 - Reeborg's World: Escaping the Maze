@@ -1,0 +1,18 @@
+#Day 5: Create a code which would allow Reeborg to escape the maze it is in - no matter which position or direction it starts in.
+#Reeborg's World can be found at the following link:
+#https://reeborg.ca/reeborg.html?lang=en&mode=python&menu=worlds%2Fmenus%2Freeborg_intro_en.json&name=Maze&url=worlds%2Ftutorial_en%2Fmaze1.json.
+#While most cases are successful, here are a select few where Reeborg will be stuck in an infinite loop. I will be revisiting this after Day 15 once I learn more skills to debug this.
+
+def turn_right():
+    turn_left()
+    turn_left()
+    turn_left()
+    
+while not at_goal():
+    if right_is_clear():
+        turn_right()
+        move()
+    elif front_is_clear():
+        move()
+    else:
+        turn_left()
