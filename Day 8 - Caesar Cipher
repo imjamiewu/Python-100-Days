@@ -1,0 +1,39 @@
+#Day 8: Create a Caesar Cipher which would allow the user to encrypt and decrypt messages using shifts in the alphabet.
+
+alphabet = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+
+#Define function caesar() to encode or decode messages
+def caesar(start_text, shift_amount, cipher_direction):
+  end_text = ""
+  for char in start_text:
+    if char in alphabet:
+      position = alphabet.index(char)
+      if cipher_direction == "encode":
+        new_position = position + shift_amount
+      else:
+        new_position = position - shift_amount
+      end_text += alphabet[new_position]
+    else: #allows spaces and characters to pass through without being encoded or decoded
+      end_text += char
+  print(f"The {direction}d text is {end_text}")
+
+import art #art logo found in another file
+print(art.logo)
+
+#Run program until user is done
+run_program = True
+while run_program == True:
+
+  direction = input("Type 'encode' to encrypt, type 'decode' to decrypt:\n")
+  text = input("Type your message:\n").lower()
+  shift = int(input("Type the shift number:\n"))
+
+  shift = shift % 26 #accounting for if the user writes a number larger than the index
+
+  caesar(start_text=text, shift_amount=shift, cipher_direction=direction)
+
+  go_again = input("Do you want to go again? Type 'yes' or 'no'.\n")
+  
+  if go_again == 'no':
+    run_program = False
+    print("Goodbye")
