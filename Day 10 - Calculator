@@ -1,0 +1,50 @@
+#Day 10: Create a calculator that will allow users to add, subtract, multiply, or divide values.
+
+def add(n1, n2):
+  return n1 + n2
+
+def subtract(n1, n2):
+  return n1 - n2
+
+def multiply(n1, n2):
+  return n1 * n2
+
+def divide(n1, n2):
+  return n1 / n2
+
+operations = {
+  "+": add,
+  "-": subtract,
+  "*": multiply,
+  "/": divide,
+}
+
+def calculator():
+  print(logo)
+  
+  run_program = True
+
+  num1 = float(input("What's the first number? "))
+
+  for op in operations:
+    print(op)
+
+  while run_program is True:
+    operation_symbol = input("Pick an operation: ")
+
+    num2 = float(input("What's the next number? "))
+
+    calculation_function = operations[operation_symbol]
+    answer = calculation_function(num1, num2)
+
+    print(f"{num1} {operation_symbol} {num2} = {answer}")
+
+    continue_program = input(f"Type 'y' to continue calculating with {answer}, or type 'n' to start a new calculation: ")
+
+    if continue_program == 'y':
+      num1 = answer
+    elif continue_program == 'n':
+      run_program = False
+      calculator()
+
+calculator()
