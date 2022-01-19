@@ -1,0 +1,44 @@
+#Day 12: Create a number guessing game for the user to guess a number that the computer has randomly selected with two levels of difficulty (10 attempts for easy, 5 attempts for hard).
+
+import art
+import random
+
+print(art.logo)
+print("Welcome to the Number Guessing Game!")
+print("I'm thinking of a number between 1 and 100.")
+difficulty = input("Choose a difficulty. Type 'easy' or 'hard': ")
+
+number = random.randint(0, 100)
+print(number) #
+
+playgame = True
+
+if difficulty == "easy":
+  num_guesses = 10
+elif difficulty == "hard":
+  num_guesses = 5
+print(f"You have {num_guesses} attempts remaining to guess the number.")
+
+while playgame is True:
+  guess = int(input("Make a guess: "))
+  num_guesses -= 1
+
+  if guess > number:
+    print("Too high.")
+    if num_guesses == 0:
+      print("You've run out of guesses, you lose.")
+      playgame = False
+    else:
+      print("Guess again.")
+      print(f"You have {num_guesses} attempts remaining to guess the number.")
+  elif guess < number:
+    print("Too low.")
+    if num_guesses == 0:
+      print("You've run out of guesses, you lose.")
+      playgame = False
+    else:
+      print("Guess again.")
+      print(f"You have {num_guesses} attempts remaining to guess the number.")
+  elif guess == number:
+    print(f"You got it! The answer was {number}.")
+    playgame = False
