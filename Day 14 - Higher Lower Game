@@ -1,0 +1,51 @@
+#Day 14: Create a game to mimic the Higher Lower game in which the user guesses between two options which of the two has a higher number of Instagram followers.
+
+import art
+import game_data
+import random
+from replit import clear
+
+def compare():
+  """Compares follower count and returns higher choice"""
+  if randomA['follower_count'] > randomB['follower_count']:
+    return 'a'
+  else:
+    return 'b'
+
+score = 0
+rungame = True
+
+print(art.logo)
+
+randomA = random.choice(game_data.data)
+randomB = random.choice(game_data.data)
+
+if randomA == randomB:
+  randomB = random.choice(game_data.data)
+
+while rungame is True:
+
+  print(f"Compare A: {randomA['name']}, a {randomA['description']} from {randomA['country']}.")
+  print(art.vs)
+  print(f"Against B: {randomB['name']}, a {randomB['description']} from {randomB['country']}.")
+
+  userchoice = input("Who has more followers? Type 'A' or 'B': ").lower()
+
+  clear()
+  print(art.logo)
+
+  if userchoice == compare():
+    score += 1
+
+    randomA = randomB
+    randomB = random.choice(game_data.data)
+
+    if randomA == randomB:
+      randomB = random.choice(game_data.data)
+
+    print(f"You're right! Current score: {score}")
+    
+  else:
+    print(f"Sorry, that's wrong. Final score: {score}")
+
+    rungame = False
