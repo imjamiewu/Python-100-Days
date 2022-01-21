@@ -1,0 +1,96 @@
+#Day 15: Create a coffee machine where the user can select from 3 drinks provided there are enough resources for the ingredients and they make a valid payment.
+
+MENU = {
+    "espresso": {
+        "ingredients": {
+            "water": 50,
+            "milk": 0,
+            "coffee": 18,
+        },
+        "cost": 1.5,
+    },
+    "latte": {
+        "ingredients": {
+            "water": 200,
+            "milk": 150,
+            "coffee": 24,
+        },
+        "cost": 2.5,
+    },
+    "cappuccino": {
+        "ingredients": {
+            "water": 250,
+            "milk": 100,
+            "coffee": 24,
+        },
+        "cost": 3.0,
+    }
+}
+
+resources = {
+    "water": 300,
+    "milk": 200,
+    "coffee": 100,
+}
+
+
+def report():
+    print(f"Water: {water}ml")
+    print(f"Milk: {milk}ml")
+    print(f"Coffee: {coffee}g")
+    print(f"Money: ${money}")
+
+
+def checkresources(choice):
+    if water > MENU[choice]["ingredients"]["water"] and milk > MENU[choice]["ingredients"][
+        "milk"] and coffee > MENU[choice]["ingredients"]["coffee"]:
+        return True
+    else:
+        return False
+
+
+def countcoins(quarters, dimes, nickels, pennies):
+    return 0.25 * quarters + 0.10 * dimes + 0.05 * nickels + 0.01 * pennies
+
+
+machineon = True
+
+water = resources["water"]
+milk = resources["milk"]
+coffee = resources["coffee"]
+money = 0
+
+while machineon:
+    drinkchoice = input("> What would you like? (espresso/latte/cappuccino): ")
+
+    if drinkchoice == 'off':
+        machineon = False
+    elif drinkchoice == 'report':
+        report()
+    else:
+        if checkresources(drinkchoice) == True:
+            print("Please insert coins.")
+            quarters = float(input("How many quarters? "))
+            dimes = float(input("How many dimes? "))
+            nickels = float(input("How many nickels? "))
+            pennies = float(input("How many pennies? "))
+            inserted_money = countcoins(quarters, dimes, nickels, pennies)
+
+            water -= MENU[drinkchoice]["ingredients"]["water"]
+            milk -= MENU[drinkchoice]["ingredients"]["milk"]
+            coffee -= MENU[drinkchoice]["ingredients"]["coffee"]
+
+            if inserted_money >= MENU[drinkchoice]["cost"]:
+                change = round(MENU[drinkchoice]["cost"] - inserted_money, 2) * -1
+                money += MENU[drinkchoice]["cost"]
+                print(f"Here is ${change} in change.")
+                print(f"Here is your {drinkchoice} ☕. Enjoy!")
+            else:
+                print("Sorry, that's not enough money. Money refunded.")
+        else:
+            if water < MENU[drinkchoice]["ingredients"]["water"]:
+                print("Sorry, there is not enough water.")
+            elif milk < MENU[drinkchoice]["ingredients"]["milk"]:
+                print("Sorry, there is not enough milk.")
+            elif coffee < MENU[drinkchoice]["ingredients"]["coffee"]:
+                print("Sorry, there is not enough coffee.")
