@@ -1,0 +1,43 @@
+#Day 18: Create a painting that is similar to Hirst's dot paintings on a 10x10 grid using random colors from an image.
+
+### FINDING COLOR PALETTE FOR DRAWING
+
+import colorgram
+
+colors = colorgram.extract('image.jpg', 10)
+rgb_colors = []
+
+for color in colors:
+     rgb = color.rgb
+     rgb = (rgb[0], rgb[1], rgb[2])
+     rgb_colors.append(rgb)
+
+print(rgb_colors)
+
+### CREATE PAINTING
+
+import turtle as t
+import random
+
+color_list = [(85, 127, 110), (46, 78, 223), (81, 138, 177), (121, 36, 152), (254, 120, 93), (175, 154, 232),
+              (35, 101, 135), (43, 104, 29), (238, 231, 91), (111, 187, 225)]
+
+turtle = t.Turtle()
+t.colormode(255)
+turtle.speed(0)
+turtle.hideturtle()
+
+x = -250
+y = -250
+
+for rowcount in range(10):
+    turtle.penup()
+    y += 50
+    turtle.setpos(x, y)
+    for dotcount in range(10):
+        turtle.penup()
+        turtle.dot(20, random.choice(color_list))
+        turtle.fd(50)
+
+screen = t.Screen()
+screen.exitonclick()
