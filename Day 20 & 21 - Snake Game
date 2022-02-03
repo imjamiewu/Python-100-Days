@@ -1,0 +1,152 @@
+#Recreate the snake game.
+
+##MAIN.PY
+from turtle import Screen
+from snake import Snake
+from food import Food
+from scoreboard import Scoreboard
+import time
+
+screen = Screen()
+screen.setup(width=600, height=600)
+screen.bgcolor("black")
+screen.title("Snake Game")
+screen.tracer(0)
+
+snake = Snake()
+food = Food()
+scoreboard = Scoreboard()
+
+screen.listen()
+screen.onkey(snake.up, "Up")
+screen.onkey(snake.down, "Down")
+screen.onkey(snake.left, "Left")
+screen.onkey(snake.right, "Right")
+
+game_on = True
+score = 0
+
+while game_on:
+    screen.update()
+    time.sleep(0.1)
+
+    snake.move()
+
+    # Detect collision with food
+    if snake.head.distance(food) < 15:
+        food.refresh()
+        snake.extend()
+        scoreboard.add_score()
+
+    # Detect collision with wall
+    if snake.head.xcor() > 280 or snake.head.xcor() < -280 or snake.head.ycor() > 280 or snake.head.ycor() < -280:
+        scoreboard.gameover()
+        game_on = False
+
+    # Detect collision with tail
+    for segment in snake.whole_snake[1:]:
+        if snake.head.distance(segment) < 10:
+            scoreboard.gameover()
+            game_on = False
+
+screen.exitonclick()
+
+##SNAKE.PY
+from turtle import Turtle
+
+STARTING_POSITIONS = [(0, 0), (-20, 0), (-40, 0)]
+MOVE_DISTANCE = 20
+RIGHT = 0
+UP = 90
+LEFT = 180
+DOWN = 270
+
+
+class Snake:
+    def __init__(self):
+        self.whole_snake = []
+        self.create_snake()
+        self.head = self.whole_snake[0]
+
+    def create_snake(self):
+        for position in STARTING_POSITIONS:
+            self.add_segment(position)
+
+    def add_segment(self, position):
+        new_snake = Turtle("square")
+        new_snake.color("white")
+        new_snake.penup()
+        new_snake.goto(position)
+        self.whole_snake.append(new_snake)
+
+    def extend(self):
+        self.add_segment(self.whole_snake[-1].position())
+
+    def move(self):
+        for snake_num in range(len(self.whole_snake) - 1, 0, -1):
+            new_x = self.whole_snake[snake_num - 1].xcor()
+            new_y = self.whole_snake[snake_num - 1].ycor()
+            self.whole_snake[snake_num].goto(new_x, new_y)
+        self.head.forward(MOVE_DISTANCE)
+
+    def right(self):
+        if self.head.heading() != LEFT:
+            self.head.seth(RIGHT)
+
+    def up(self):
+        if self.head.heading() != DOWN:
+            self.head.seth(UP)
+
+    def left(self):
+        if self.head.heading() != RIGHT:
+            self.head.seth(LEFT)
+
+    def down(self):
+        if self.head.heading() != UP:
+            self.head.seth(DOWN)
+
+##FOOD.PY
+from turtle import Turtle
+import random
+
+
+class Food(Turtle):
+
+    def __init__(self):
+        super().__init__()
+        self.shape("turtle")
+        self.penup()
+        self.shapesize(stretch_len=0.5, stretch_wid=0.5)
+        self.color("blue")
+        self.speed("fastest")
+        self.refresh()
+
+    def refresh(self):
+        rand_x = random.randint(-280, 280)
+        rand_y = random.randint(-280, 280)
+        self.goto(rand_x, rand_y)
+
+##SCOREBOARD.PY
+from turtle import Turtle
+
+ALIGNMENT = "center"
+FONT = ("Courier", 15, "normal")
+
+class Scoreboard(Turtle):
+    def __init__(self):
+        super().__init__()
+        self.color("white")
+        self.hideturtle()
+        self.penup()
+        self.goto(0, 260)
+        self.score = 0
+        self.write(f"Score: {self.score}", move=False, align=ALIGNMENT, font=FONT)
+
+    def add_score(self):
+        self.score += 1
+        self.clear()
+        self.write(f"Score: {self.score}", move=False, align=ALIGNMENT, font=FONT)
+
+    def gameover(self):
+        self.goto(0,0)
+        self.write("GAME OVER", align=ALIGNMENT, font=FONT)
