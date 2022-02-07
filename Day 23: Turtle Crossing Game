@@ -1,0 +1,131 @@
+#Day 23: Create the Turtle Crossing game, in which the player can only move the turtle forward and the cars have to be dodged.
+
+##MAIN.PY
+import time
+from turtle import Screen
+from player import Player
+from car_manager import CarManager
+from scoreboard import Scoreboard
+
+screen = Screen()
+screen.setup(width=600, height=600)
+screen.tracer(0)
+
+game_is_on = True
+
+turtle = Player()
+car_manager = CarManager()
+level = Scoreboard()
+
+screen.listen()
+screen.onkeypress(turtle.move, "Up")
+
+while game_is_on:
+    time.sleep(0.1)
+    screen.update()
+
+    car_manager.create_car()
+    car_manager.move_cars()
+
+    # Detect turtle passing level
+    if turtle.ycor() == 280:
+        level.add_score()
+        turtle.refresh()
+        car_manager.speed_up()
+
+    # Detect turtle colliding with car
+    for car in car_manager.all_cars:
+        if turtle.distance(car) < 20:
+            level.game_over()
+            game_is_on = False
+
+screen.exitonclick()
+
+##PLAYER.PY
+from turtle import Turtle
+
+STARTING_POSITION = (0, -280)
+MOVE_DISTANCE = 10
+FINISH_LINE_Y = 280
+
+
+class Player(Turtle):
+
+    def __init__(self):
+        super().__init__()
+        self.shape("turtle")
+        self.penup()
+        self.goto(STARTING_POSITION)
+        self.seth(90)
+
+    def move(self):
+        self.goto(self.xcor(), self.ycor()+MOVE_DISTANCE)
+
+    def refresh(self):
+        self.goto(STARTING_POSITION)
+        self.seth(90)
+
+##CAR_MANAGER.PY
+from turtle import Turtle
+import random
+
+COLORS = ["red", "orange", "yellow", "green", "blue", "purple"]
+STARTING_MOVE_DISTANCE = 5
+MOVE_INCREMENT = 10
+
+
+class CarManager:
+
+    def __init__(self):
+        super().__init__()
+        self.all_cars = []
+        self.move_speed = STARTING_MOVE_DISTANCE
+
+    def create_car(self):
+        random_gen = random.randint(1, 6)
+        if random_gen == 1:
+            new_car = Turtle("square")
+            new_car.penup()
+            new_car.shapesize(stretch_wid=1, stretch_len=2, outline=None)
+            new_car.color(random.choice(COLORS))
+            new_car.goto(300, random.randint(-250, 250))
+            self.all_cars.append(new_car)
+
+    def move_cars(self):
+        for car in self.all_cars:
+            car.backward(self.move_speed)
+
+    def speed_up(self):
+        self.move_speed += MOVE_INCREMENT
+
+        for car in self.all_cars:
+            car.backward(self.move_speed)
+
+##SCOREBOARD.PY
+from turtle import Turtle
+
+POSITION = (-270, 250)
+FONT = ("Courier", 20, "normal")
+
+
+class Scoreboard(Turtle):
+
+    def __init__(self):
+        super().__init__()
+        self.hideturtle()
+        self.penup()
+        self.level = 1
+        self.print_score()
+
+    def add_score(self):
+        self.level += 1
+        self.print_score()
+
+    def print_score(self):
+        self.clear()
+        self.goto(POSITION)
+        self.write(f"Level: {self.level}", align="left", font=FONT)
+
+    def game_over(self):
+        self.goto(0, 0)
+        self.write("GAME OVER", align="center", font=FONT)
