@@ -1,0 +1,16 @@
+#Day 26: Using pandas, create a NATO generator that would provide user with the NATO words corresponding to the letters of a word they input.
+
+import pandas
+
+alphabet = pandas.read_csv("nato_phonetic_alphabet.csv")
+alphabet_dict = alphabet.to_dict()
+alpha_df = pandas.DataFrame(alphabet_dict)
+
+#TODO 1. Create a dictionary in this format:
+#{"A": "Alfa", "B": "Bravo"}
+alpha_dict = {row.letter: row.code for (index,row) in alpha_df.iterrows()}
+
+#TODO 2. Create a list of the phonetic code words from a word that the user inputs.
+word = input("Enter a word: ")
+nato = [alpha_dict[letter.upper()] for letter in word]
+print(nato)
