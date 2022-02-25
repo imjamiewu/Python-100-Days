@@ -1,0 +1,75 @@
+#Day 31: Create a flash card program for users trying to learn the most common words of a language.
+
+from tkinter import *
+import pandas
+import random
+
+BACKGROUND_COLOR = "#B1DDC6"
+word_dict = {}
+current_card = {}
+
+###------------------READING DATA------------------###
+try:
+    data = pandas.read_csv("data/words_to_learn.csv")
+except FileNotFoundError:
+    og_data = pandas.read_csv("data/french_words.csv")
+    word_dict = og_data.to_dict(orient="records")
+else:
+    word_dict = data.to_dict(orient="records")
+
+def pick_new_word():
+    global current_card, flip_timer
+
+    window.after_cancel(flip_timer)
+
+    current_card = random.choice(word_dict)
+
+    canvas.itemconfig(canvas_img, image=card_front_img)
+    canvas.itemconfig(language_text, text="French", fill="black")
+    canvas.itemconfig(word_text, text=current_card["French"], fill="black")
+
+    flip_timer = window.after(3000, func=flip_card)
+
+def flip_card():
+    current_word_en = current_card["English"]
+
+    canvas.itemconfig(canvas_img, image=card_back_img)
+    canvas.itemconfig(language_text, text="English", fill="white")
+    canvas.itemconfig(word_text, text=current_word_en, fill="white")
+
+def known_word():
+    word_dict.remove(current_card)
+
+    ###------------------SAVING PROGRESS------------------###
+    data = pandas.DataFrame(word_dict)
+    data.to_csv("data/words_to_learn.csv", index=False)
+
+    pick_new_word()
+
+###------------------UI INTERFACE------------------###
+window = Tk()
+window.title("Flash Cards")
+window.config(padx=50, pady=50, bg=BACKGROUND_COLOR)
+
+flip_timer = window.after(3000, func=flip_card)
+
+canvas = Canvas(width=800, height=526, bg=BACKGROUND_COLOR, highlightthickness=0)
+card_front_img = PhotoImage(file="images/card_front.png")
+card_back_img = PhotoImage(file="images/card_back.png")
+canvas_img = canvas.create_image(400, 263, image=card_front_img)
+canvas.grid(column=0, row=0, columnspan=2)
+
+language_text = canvas.create_text(400, 150, text="", font=("Arial", 40, "italic"))
+word_text = canvas.create_text(400, 263, text="", font=("Arial", 60, "bold"))
+
+check_img = PhotoImage(file="images/right.png")
+check_button = Button(image=check_img, highlightthickness=0, command=known_word)
+check_button.grid(column=1, row=1)
+
+ex_img = PhotoImage(file="images/wrong.png")
+ex_button = Button(image=ex_img, highlightthickness=0, command=pick_new_word)
+ex_button.grid(column=0, row=1)
+
+pick_new_word()
+
+window.mainloop()
