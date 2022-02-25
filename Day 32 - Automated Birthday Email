@@ -1,0 +1,38 @@
+#Day 32: Create a program that will send emails to contacts on their birthdays automatically.
+
+import smtplib
+import datetime as dt
+import pandas
+import random
+
+my_email = "testing123@gmail.com"
+password = "Abcd1234()"
+PLACEHOLDER = "[NAME]"
+
+birthdays = pandas.read_csv("birthdays.csv").to_dict(orient="records")
+
+now = dt.datetime.now()
+month = now.month
+day = now.day
+
+for person in birthdays:
+    if person['month'] == month and person['day'] == day:
+        birthday_person = person['name']
+        birthday_email = person['email']
+
+        random_num = random.randint(1,3)
+
+        with open(f"letter_templates/letter_{random_num}.txt") as template:
+            letter = template.read()
+
+        letter = letter.replace(PLACEHOLDER, birthday_person)
+
+with smtplib.SMTP("smtp.gmail.com") as connection:
+    connection.starttls()
+    connection.login(user=my_email, password=password)
+    connection.sendmail(
+        from_addr=my_email,
+        to_addrs=birthday_email,
+        msg=f"Subject:Happy Birthday!\n\n{letter}"
+    )
+    
