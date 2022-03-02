@@ -8,8 +8,8 @@ from twilio.http.http_client import TwilioHttpClient
 MY_LAT = 1.352083
 MY_LONG = 103.819839
 API_KEY = "69f04e4613056b159c2761a9d9e664d2"
-ACCOUNT_SID = "AC7152fd0cdb6cc5a627359408859da176"
-AUTH_TOKEN = "1f105a06463aaa438f70257c2657e388"
+ACCOUNT_SID = "[account_sid here]"
+AUTH_TOKEN = "[auth_tocken here]"
 
 parameters = {
     "lat": MY_LAT,
@@ -38,8 +38,8 @@ if will_rain:
     message = client.messages \
         .create(
         body="Bring an umbrella ☂",
-        from_='[phone_number]',
-        to='[phone_number]'
+        from_='[phone_number here]',
+        to='[phone_number here]'
     )
 
     print(message.status)
