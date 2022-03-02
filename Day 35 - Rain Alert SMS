@@ -1,0 +1,46 @@
+#Day 35: Create a rain alert application so that you will receive a notification daily with a reminder to bring an umbrella if it rains.
+
+import requests
+import os
+from twilio.rest import Client
+from twilio.http.http_client import TwilioHttpClient
+
+MY_LAT = 1.352083
+MY_LONG = 103.819839
+API_KEY = "69f04e4613056b159c2761a9d9e664d2"
+ACCOUNT_SID = "AC7152fd0cdb6cc5a627359408859da176"
+AUTH_TOKEN = "1f105a06463aaa438f70257c2657e388"
+
+parameters = {
+    "lat": MY_LAT,
+    "lon": MY_LONG,
+    "appid": API_KEY,
+    "exclude": "current,minutely,daily"
+}
+
+response = requests.get(url="https://api.openweathermap.org/data/2.5/onecall", params=parameters)
+response.raise_for_status()
+data = response.json()
+
+will_rain = False
+
+for x in range(13):
+    id = data["hourly"][x]["weather"][0]["id"]
+    if id < 700:
+        will_rain = True
+        
+if will_rain:
+    proxy_client = TwilioHttpClient()
+    proxy_client.session.proxies = {'https': os.environ['https_proxy']}
+
+    client = Client(ACCOUNT_SID, AUTH_TOKEN)
+
+    message = client.messages \
+        .create(
+        body="Bring an umbrella ☂",
+        from_='[phone_number]',
+        to='[phone_number]'
+    )
+
+    print(message.status)
+    
