@@ -1,0 +1,73 @@
+#Day 36: Create a program that will automatically text the three most recent articles for a stock if it increases or decreases by more than 5% on a given day.
+
+from datetime import date, timedelta
+import requests
+from twilio.rest import Client
+
+
+STOCK = "TSLA"
+COMPANY_NAME = "Tesla Inc"
+account_sid = "[redacted]"
+auth_token = "[redacted]"
+
+# API keys and parameters
+stock_API_key = "[redacted]"
+
+stock_parameters = {
+    "function": "TIME_SERIES_DAILY",
+    "symbol": STOCK,
+    "apikey": stock_API_key,
+}
+
+news_API_key = "[redacted]"
+
+news_parameters = {
+    "q": COMPANY_NAME,
+    "apiKey": news_API_key,
+    "sortBy": "publishedAt",
+    "language": "en"
+}
+
+# Get stock prices
+stock_response = requests.get(url="https://www.alphavantage.co/query", params=stock_parameters)
+stock_response.raise_for_status()
+stock_price_data = stock_response.json()
+
+today = date.today()
+yesterday = str(today - timedelta(days=1))
+two_days_ago = str(today - timedelta(days=2))
+
+recent_price = float(stock_price_data["Time Series (Daily)"][yesterday]["4. close"])
+previous_price = float(stock_price_data["Time Series (Daily)"][two_days_ago]["4. close"])
+percent_difference = round(((recent_price - previous_price) / recent_price) * 100)
+
+if percent_difference > 0:
+    percent_difference_str = f"🔺{percent_difference}%"
+else:
+    percent_difference_str = f"🔻{percent_difference}%"
+
+# When stock price increases/decreases by 5%, get 3 most recent headlines
+recent_news = []
+
+if abs(percent_difference) >= 5:
+    news_response = requests.get(url="https://newsapi.org/v2/everything", params=news_parameters)
+    news_response.raise_for_status()
+    news_data = news_response.json()
+    recent_news += news_data["articles"][:3]
+
+# Send an SMS message for each article
+for x in range(len(recent_news)):
+    body = f"""
+    {STOCK}: {percent_difference_str}
+    Headline: {recent_news[x]['title']}
+    Brief: {recent_news[x]['description']}
+    """
+
+    client = Client(account_sid, auth_token)
+    message = client.messages \
+        .create(
+        body=body,
+        from_="[redacted]",
+        to="[redacted]"
+        )
+    print(message.status)
