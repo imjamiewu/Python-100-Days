@@ -1,0 +1,54 @@
+#Day 38: Write code that will use Nutritionix to log exercise workouts and upload them automatically to a spreadsheet on Sheety.
+
+import requests
+from datetime import datetime
+import os
+
+
+GENDER = "female"
+WEIGHT = 59
+HEIGHT = 152
+AGE = 27
+
+APP_ID = os.environ[redacted]
+API_KEY = os.environ[redacted]
+
+exercise_endpoint = "https://trackapi.nutritionix.com/v2/natural/exercise"
+
+params = {
+    "query": input("Tell me which exercises you did: "),
+    "gender": GENDER,
+    "weight_kg": WEIGHT,
+    "height_cm": HEIGHT,
+    "age": AGE
+}
+
+headers = {
+    "x-app-id": APP_ID,
+    "x-app-key": API_KEY
+}
+
+response = requests.post(url=exercise_endpoint, json=params, headers=headers)
+result = response.json()
+
+post_sheety_endpoint = "https://api.sheety.co/5e3aa5ed7d062b19b2ca0bd640f5c137/myWorkouts/workouts"
+
+sheety_headers = {
+    "Authorization": f"Basic {os.environ[redacted]}"
+}
+
+today = datetime.now()
+
+for x in result['exercises']:
+    exercise_params = {
+        "workout": {
+            "date": today.strftime("%d/%m/%Y"),
+            "time": today.strftime("%H:%M:%S"),
+            "exercise": x['name'].title(),
+            "duration": x['duration_min'],
+            "calories": x['nf_calories']
+        }
+    }
+
+    sheety_response = requests.post(url=post_sheety_endpoint, json=exercise_params, headers=sheety_headers)
+    print(sheety_response.text)
