@@ -1,0 +1,158 @@
+#Day 39: Create a program that will automatically find deals on flights and send an SMS when there is a deal.
+
+##MAIN.PY
+from pprint import pprint
+from data_manager import DataManager
+from flight_search import FlightSearch
+from notification_manager import NotificationManager
+from datetime import datetime, timedelta
+
+OG_CITY_CODE = "LON"
+
+data_manager = DataManager()
+flight_search = FlightSearch()
+notification_manager = NotificationManager()
+
+sheet_data = data_manager.get_data()
+
+if sheet_data[0]['iataCode'] == "":
+    for row in sheet_data:
+        row["iataCode"] = flight_search.get_iata_code(row["city"])
+
+        data_manager.destination_data = sheet_data
+        data_manager.update_iata_data()
+
+pprint(sheet_data)
+
+tomorrow = datetime.now() + timedelta(days=1)
+until_date = datetime.now() + timedelta(days=180)
+
+for row in sheet_data:
+    flight = flight_search.search_flights(OG_CITY_CODE, row["iataCode"], tomorrow, until_date)
+
+    if flight is not None and flight.price < row['lowestPrice']:
+        notification_manager.send_sms(message=f"Low price alert! Only {flight.price} to fly from "
+            f"{flight.origin_city}-{flight.origin_airport} to {flight.destination_city}-{flight.destination_airport},"
+            f" from {flight.departure_date} to {flight.return_date}.")
+            
+##NOTIFICATION_MANAGER.PY
+from twilio.rest import Client
+
+
+TWILIO_SID = "[account_sid here]"
+TWILIO_TOKEN = "[auth_token here]"
+
+class NotificationManager:
+
+    def __init__(self):
+        self.client = Client(TWILIO_SID, TWILIO_TOKEN)
+
+    def send_sms(self, message):
+        message = self.client.messages.create(body=message, from_=[redacted], to=[redacted])
+
+        print(message.sid)
+        
+##DATA_MANAGER.PY
+import requests
+
+
+SHEETY_ENDPOINT = "https://api.sheety.co/9f47f9be72e8ddb21a62033d794a8bd7/flightDeals/prices"
+
+class DataManager:
+
+    def __init__(self):
+        self.destination_data = {}
+
+    def get_data(self):
+        response = requests.get(url=SHEETY_ENDPOINT)
+        data = response.json()
+        self.destination_data = data["prices"]
+
+        return self.destination_data
+
+    def update_iata_data(self):
+        for city in self.destination_data:
+            params = {
+                "price": {
+                    "iataCode": city["iataCode"]
+                }
+            }
+
+            response = requests.put(url=f"{SHEETY_ENDPOINT}/{city['id']}", json=params)
+
+            print(response.text)
+
+##FLIGHT_DATA.PY
+class FlightData:
+
+    def __init__(self, price, origin_city, origin_airport, destination_city, destination_airport, departure_date, return_date):
+        self.price = price
+        self.origin_city = origin_city
+        self.origin_airport = origin_airport
+        self.destination_city = destination_city
+        self.destination_airport = destination_airport
+        self.departure_date = departure_date
+        self.return_date = return_date
+
+##FLIGHT_SEARCH.PY
+import requests
+from datetime import datetime, timedelta
+from flight_data import FlightData
+
+TEQUILA_ENDPOINT = "https://tequila-api.kiwi.com"
+TEQUILA_API = "Z4JczxrHbZKcDNC6PFslTbN12cGbvFQ3"
+
+
+class FlightSearch:
+
+    def get_iata_code(self, city_name):
+        params = {
+            "term": city_name,
+            "location_types": "city"
+        }
+
+        headers = {
+            "apikey": TEQUILA_API
+        }
+
+        response = requests.get(url=f"{TEQUILA_ENDPOINT}/locations/query", headers=headers, params=params)
+        results = response.json()["locations"]
+        code = results[0]["code"]
+
+        return code
+
+    def search_flights(self, og_city_code, dest_city_code, from_date, to_date):
+        params = {
+            "fly_from": og_city_code,
+            "fly_to": dest_city_code,
+            "date_from": from_date.strftime("%d/%m/%Y"),
+            "date_to": to_date.strftime("%d/%m/%Y"),
+            "nights_in_dst_from": 7,
+            "nights_in_dst_to": 28,
+            "flight_type": "round",
+            "one_for_city": 1,
+            "max_stopovers": 0,
+            "curr": "GBP"
+        }
+
+        headers = {
+            "apikey": TEQUILA_API
+        }
+
+        response = requests.get(url=f"{TEQUILA_ENDPOINT}/v2/search", headers=headers, params=params)
+
+        try:
+            data = response.json()["data"][0]
+        except IndexError:
+            print(f"No flights found for {dest_city_code}.")
+            return None
+
+        flight_data = FlightData(
+            price=data["price"],
+            origin_city=data["route"][0]["cityFrom"],
+            origin_airport=data["route"][0]["flyFrom"],
+            destination_city=data["route"][0]["cityTo"],
+            destination_airport=data["route"][0]["flyTo"],
+            departure_date=data["route"][0]["local_departure"].split("T")[0],
+            return_date=data["route"][1]["local_departure"].split("T")[0]
+        )
